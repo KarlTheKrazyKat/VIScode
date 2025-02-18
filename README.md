@@ -20,8 +20,15 @@ None
 
 + Auto write and grid tkinter label from selection menu
 
+### 0.0.2
+
++ Auto write and grid tkinter button...
++ Auto write and grid tkinter entry...
++ Auto write and grid tkinter combobox...
+
 ## Upcoming
 
 + More elements creatable through VIS submenu
 + Keyboard shortcuts to create elements
 + VIS module functionality via VIS submenu
++ Option to disable popup messages

@@ -4,7 +4,7 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -12,12 +12,25 @@
     "Other"
   ],
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./out/replacements.js",
+  "module": "./out/insertions.js",
   "contributes": {
     "commands": [
       {
         "command": "viscode.addLabel",
         "title": "Add label from selection"
+      },
+      {
+        "command": "viscode.addButton",
+        "title": "Add button from selection"
+      },
+      {
+        "command": "viscode.addEntry",
+        "title": "Add entry from selection"
+      },
+      {
+        "command": "viscode.addCombobox",
+        "title": "Add combobox from selection"
       }
     ],
     "submenus": [
@@ -38,6 +51,21 @@
         "command": "viscode.addLabel",
         "group": "viscode@1",
         "when": "editorLangId == 'python' && editorHasSelection"
+        },
+        {
+          "command": "viscode.addButton",
+          "group": "viscode@2",
+          "when": "editorLangId == 'python' && editorHasSelection"
+        },
+        {
+          "command": "viscode.addEntry",
+          "group": "viscode@3",
+          "when": "editorLangId == 'python' && editorHasSelection"
+        },
+        {
+          "command": "viscode.addCombobox",
+          "group": "viscode@4",
+          "when": "editorLangId == 'python' && editorHasSelection"
         }
       ]
     }
