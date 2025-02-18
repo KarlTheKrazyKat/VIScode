@@ -1,6 +1,8 @@
 {
-  "name": "viscode",
-  "displayName": "VIScode",
+  "name": "vis",
+  "displayName": "VIS",
+  "repository": "https://github.com/KarlTheKrazyKat/VIScode",
+  "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
   "version": "0.0.1",
   "engines": {
