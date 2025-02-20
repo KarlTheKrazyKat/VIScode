@@ -4,16 +4,16 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.97.0"
   },
   "categories": [
-    "Other"
+    "Formatters"
   ],
   "activationEvents": [],
   "main": "./out/replacements.js",
-  "module": "./out/insertions.js",
+  "module": "./out/truevis.js",
   "contributes": {
     "commands": [
       {
@@ -43,32 +43,56 @@
       "editor/context": [
         {
           "submenu": "vis.code",
-          "group": "viscode"
+          "group": "visedit"
+        }
+      ],
+      "explorer/context":[
+        {
+          "submenu":"vis.code",
+          "group":"visexpl"
         }
       ],
       "vis.code": [
         {
         "command": "viscode.addLabel",
-        "group": "viscode@1",
+        "group": "visedit@1",
         "when": "editorLangId == 'python' && editorHasSelection"
         },
         {
           "command": "viscode.addButton",
-          "group": "viscode@2",
+          "group": "visedit@2",
           "when": "editorLangId == 'python' && editorHasSelection"
         },
         {
           "command": "viscode.addEntry",
-          "group": "viscode@3",
+          "group": "visedit@3",
           "when": "editorLangId == 'python' && editorHasSelection"
         },
         {
           "command": "viscode.addCombobox",
-          "group": "viscode@4",
+          "group": "visedit@4",
           "when": "editorLangId == 'python' && editorHasSelection"
         }
       ]
-    }
+    },
+    "keybindings":[
+      {
+        "command":"viscode.addLabel",
+        "key":"shift+alt+L"
+      },
+      {
+        "command":"viscode.addButton",
+        "key":"shift+alt+B"
+      },
+      {
+        "command":"viscode.addEntry",
+        "key":"shift+alt+E"
+      },
+      {
+        "command":"viscode.addCombobox",
+        "key":"shift+alt+M"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

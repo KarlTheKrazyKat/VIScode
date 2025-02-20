@@ -26,9 +26,17 @@ None
 + Auto write and grid tkinter entry...
 + Auto write and grid tkinter combobox...
 
+### 0.0.3
+
++ Added keyboard shortcuts all under shift+alt
++ -Auto label B (shift+alt+L)
++ -Auto button B (shift+alt+B)
++ -Auto entry B (shift+alt+E)
++ -Auto combobox B (shift+alt+M)
+
 ## Upcoming
 
 + More elements creatable through VIS submenu
-+ Keyboard shortcuts to create elements
 + VIS module functionality via VIS submenu
 + Option to disable popup messages
++ Create command (with VIS) and button together (shift+alt+K)
