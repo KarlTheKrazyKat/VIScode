@@ -4,14 +4,16 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.97.0"
   },
   "categories": [
     "Formatters"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/replacements.js",
   "module": "./out/truevis.js",
   "contributes": {
@@ -35,6 +37,10 @@
       {
         "command": "viscode.addCommandButton",
         "title": "Add command button from selection"
+      },
+      {
+        "command": "viscode.showWelcome",
+        "title": "VIS: Show Welcome Page"
       }
     ],
     "submenus": [
