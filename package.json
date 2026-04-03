@@ -4,7 +4,7 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -31,6 +31,10 @@
       {
         "command": "viscode.addCombobox",
         "title": "Add combobox from selection"
+      },
+      {
+        "command": "viscode.addCommandButton",
+        "title": "Add command button from selection"
       }
     ],
     "submenus": [
@@ -72,8 +76,23 @@
           "command": "viscode.addCombobox",
           "group": "visedit@4",
           "when": "editorLangId == 'python' && editorHasSelection"
+        },
+        {
+          "command": "viscode.addCommandButton",
+          "group": "visedit@5",
+          "when": "editorLangId == 'python' && editorHasSelection"
         }
       ]
+    },
+    "configuration": {
+      "title": "VIS",
+      "properties": {
+        "viscode.showMessages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show information messages after snippet insertion."
+        }
+      }
     },
     "keybindings": [
       {
@@ -91,6 +110,10 @@
       {
         "command": "viscode.addCombobox",
         "key": "shift+alt+M"
+      },
+      {
+        "command": "viscode.addCommandButton",
+        "key": "shift+alt+K"
       }
     ]
   },
@@ -105,6 +128,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "1.97.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vscode/test-cli": "^0.0.10",

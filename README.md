@@ -4,7 +4,15 @@ This is an extension to be used alongside the VIS python module available via gi
 
 ## Features
 
-Auto write and grid tkinter label
+Auto write and place tkinter elements using the VIStk f_element `.place()` pattern:
+
+- Label (shift+alt+L)
+- Button (shift+alt+B)
+- Entry (shift+alt+E)
+- Combobox (shift+alt+M)
+- Command Button (shift+alt+K)
+
+Snippet insertion messages can be disabled via `viscode.showMessages` setting (default: true)
 
 ## Requirements
 
@@ -16,27 +24,34 @@ None
 
 ## Release Notes
 
-### 0.0.1
+### 0.1.0
 
-+ Auto write and grid tkinter label from selection menu
-
-### 0.0.2
-
-+ Auto write and grid tkinter button...
-+ Auto write and grid tkinter entry...
-+ Auto write and grid tkinter combobox...
+- All widget snippets use VIStk f_element `.place()` pattern (not `.grid()`)
+- Added `addCommandButton` (shift+alt+K) — generates `tk.Button` with no preset styling
+- Snippet messages gated on `viscode.showMessages` config (default: true)
 
 ### 0.0.3
 
-+ Added keyboard shortcuts all under shift+alt
-+ -Auto label B (shift+alt+L)
-+ -Auto button B (shift+alt+B)
-+ -Auto entry B (shift+alt+E)
-+ -Auto combobox B (shift+alt+M)
+- Added keyboard shortcuts all under shift+alt
+- Auto label (shift+alt+L)
+- Auto button (shift+alt+B)
+- Auto entry (shift+alt+E)
+- Auto combobox (shift+alt+M)
+
+### 0.0.2
+
+- Auto write and grid tkinter button
+- Auto write and grid tkinter entry
+- Auto write and grid tkinter combobox
+
+### 0.0.1
+
+- Auto write and grid tkinter label from selection menu
 
 ## Upcoming
 
-+ More elements creatable through VIS submenu
-+ VIS module functionality via VIS submenu
-+ Option to disable popup messages
-+ Create command (with VIS) and button together (shift+alt+K)
+- More elements creatable through VIS submenu
+- VIS module functionality via VIS submenu
+- VIS project awareness (show current screen)
+- VIS project navigation (alternate file tree by screen)
+- VIS project control (create, rename, edit screens)

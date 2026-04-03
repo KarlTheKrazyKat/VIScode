@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
                 reject(`Error: ${error.message}`);
                 return;
             }
-            if(stdout){
+            if(stderr){
                 reject(`Stderr:${stderr}`);
                 return;
             }
