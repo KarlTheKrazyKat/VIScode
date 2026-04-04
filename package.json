@@ -6,7 +6,7 @@
   "description": "VScode extension for VIS",
   "license": "MIT",
   "icon": "images/VIS.png",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "engines": {
     "vscode": "^1.97.0"
   },

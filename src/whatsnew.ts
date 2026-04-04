@@ -7,6 +7,18 @@ interface ChangeEntry {
 
 /** Add an entry here for every released version. */
 const changelog: Record<string, ChangeEntry[]> = {
+    '0.5.1': [
+        {
+            section: 'Screen Contract Diagnostics',
+            items: [
+                '<strong>Missing function warnings</strong> — screen entry-point scripts are checked for the five required VIStk functions (<code>setup</code>, <code>loop</code>, <code>configure_menu</code>, <code>on_focused</code>, <code>on_unfocused</code>). Missing functions show as warnings.',
+                '<strong>Module-level widget errors</strong> — widget creation (<code>ttk.*</code>, <code>tk.*</code>, <code>LayoutFrame</code>, <code>StringVar</code>, <code>.pack()</code>, <code>.place()</code>, <code>.grid()</code>, etc.) at module level is flagged as an error.',
+                'Diagnostics run on open, save, and as-you-type for all Python files inside a VIStk project.',
+                'Non-screen Python files still get module-level widget checks, but not the missing-function check.',
+                '<strong>Tree view indicators</strong> — screens and files in the VIS Screens tree show red error or yellow warning icons when diagnostics are present. Hover a file to see details.',
+            ],
+        },
+    ],
     '0.4.2': [
         {
             section: 'Housekeeping',

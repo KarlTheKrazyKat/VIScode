@@ -4,6 +4,26 @@ VS Code extension for [VIStk](https://github.com/KarlTheKrazyKat/VIStk), the Tki
 
 ## Features
 
+### Screen Contract Diagnostics
+
+Real-time diagnostics for VIStk screen files, catching mistakes that crash the Host at edit time instead of runtime.
+
+**Missing required functions** — screen entry-point scripts (listed in `project.json`) are checked for the five functions every VIStk screen must define:
+
+- `setup(parent)`
+- `loop()`
+- `configure_menu(menubar)`
+- `on_focused()`
+- `on_unfocused()`
+
+Missing functions appear as warnings.
+
+**Module-level widget creation** — widget construction (`ttk.*`, `tk.*`, `LayoutFrame`, `StringVar`, `.pack()`, `.place()`, `.grid()`, etc.) at module level is flagged as an error. All widget creation must live inside `setup()` or `build()`.
+
+Diagnostics run on open, save, and as-you-type for all Python files inside a VIStk project (detected via `.VIS/project.json`).
+
+**Tree view indicators** — the VIS Screens tree shows red error or yellow warning icons on files, category folders, and screen nodes when diagnostics are present. Hover over a file to see the details.
+
 ### Widget Snippets
 
 Select text and press a hotkey to generate a placed Tkinter widget:

@@ -25,6 +25,114 @@ interface ScreenData {
 
 type ItemKind = 'screen' | 'category' | 'file';
 
+// ── Diagnostic helpers ──────────────────────────────────────────────
+
+type Severity = 'error' | 'warning' | 'none';
+
+const SEVERITY_ICONS: Record<Severity, vscode.ThemeIcon> = {
+    error:   new vscode.ThemeIcon('error',   new vscode.ThemeColor('list.errorForeground')),
+    warning: new vscode.ThemeIcon('warning', new vscode.ThemeColor('list.warningForeground')),
+    none:    new vscode.ThemeIcon('pass',    new vscode.ThemeColor('testing.iconPassed')),
+};
+
+/** Return only VIS-sourced diagnostics for a file. */
+function visDiagnostics(filePath: string): vscode.Diagnostic[] {
+    const uri = vscode.Uri.file(filePath);
+    return vscode.languages.getDiagnostics(uri).filter(d => d.source === 'VIS');
+}
+
+/** Return the worst VIS severity for a file. */
+function fileSeverity(filePath: string): Severity {
+    const diags = visDiagnostics(filePath);
+    if (diags.length === 0) { return 'none'; }
+    return diags.some(d => d.severity === vscode.DiagnosticSeverity.Error) ? 'error' : 'warning';
+}
+
+/** Return the worst severity across a list of file paths. */
+function aggregateSeverity(files: string[]): Severity {
+    let worst: Severity = 'none';
+    for (const f of files) {
+        const s = fileSeverity(f);
+        if (s === 'error') { return 'error'; }
+        if (s === 'warning') { worst = 'warning'; }
+    }
+    return worst;
+}
+
+/** Count VIS diagnostics for a file, split by severity. */
+function fileCounts(filePath: string): { errors: number; warnings: number } {
+    const diags = visDiagnostics(filePath);
+    let errors = 0, warnings = 0;
+    for (const d of diags) {
+        if (d.severity === vscode.DiagnosticSeverity.Error) { errors++; }
+        else { warnings++; }
+    }
+    return { errors, warnings };
+}
+
+/** Format a count like "2 errors, 1 warning". */
+function formatCounts(errors: number, warnings: number): string {
+    const parts: string[] = [];
+    if (errors > 0) { parts.push(`${errors} error${errors > 1 ? 's' : ''}`); }
+    if (warnings > 0) { parts.push(`${warnings} warning${warnings > 1 ? 's' : ''}`); }
+    return parts.join(', ');
+}
+
+/**
+ * Screen-level tooltip: summarises issue counts by location.
+ * e.g. "2 errors in Testing.py\n1 warning in Elements"
+ */
+function screenTooltip(data: ScreenData): string {
+    const lines: string[] = [];
+
+    if (data.entryPoint) {
+        const { errors, warnings } = fileCounts(data.entryPoint);
+        if (errors + warnings > 0) {
+            lines.push(`${formatCounts(errors, warnings)} in ${path.basename(data.entryPoint)}`);
+        }
+    }
+    for (const [label, files] of [['Elements', data.elements], ['Modules', data.modules]] as const) {
+        let errors = 0, warnings = 0;
+        for (const f of files) {
+            const c = fileCounts(f);
+            errors += c.errors;
+            warnings += c.warnings;
+        }
+        if (errors + warnings > 0) {
+            lines.push(`${formatCounts(errors, warnings)} in ${label}`);
+        }
+    }
+
+    return lines.join('\n');
+}
+
+/**
+ * Category-level tooltip: summarises issue counts per file.
+ * e.g. "2 errors in f_mainframe.py\n1 warning in f_header.py"
+ */
+function categoryTooltip(files: string[]): string {
+    const lines: string[] = [];
+    for (const f of files) {
+        const { errors, warnings } = fileCounts(f);
+        if (errors + warnings > 0) {
+            lines.push(`${formatCounts(errors, warnings)} in ${path.basename(f)}`);
+        }
+    }
+    return lines.join('\n');
+}
+
+/** File-level tooltip: specific diagnostic messages. */
+function fileTooltip(filePath: string): string {
+    const diags = visDiagnostics(filePath);
+    if (diags.length === 0) { return ''; }
+    return diags.map(d => {
+        const icon = d.severity === vscode.DiagnosticSeverity.Error ? '[error]' : '[warning]';
+        return `${icon} ${d.message}`;
+    }).join('\n');
+}
+
+// ── Tree items ──────────────────────────────────────────────────────
+
 class ScreenItem extends vscode.TreeItem {
     constructor(
         label: string,
@@ -68,6 +176,11 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
 
     refresh() {
         this.loadProject();
+        this._onDidChangeTreeData.fire(undefined);
+    }
+
+    /** Re-render tree items without reloading project.json. */
+    fireChange() {
         this._onDidChangeTreeData.fire(undefined);
     }
 
@@ -164,9 +277,21 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
 
         // Root: list screens
         if (!element) {
-            return Object.keys(this.screens).sort().map(name =>
-                new ScreenItem(name, vscode.TreeItemCollapsibleState.Collapsed, 'screen', name)
-            );
+            return Object.keys(this.screens).sort().map(name => {
+                const data = this.screens[name];
+                const allFiles = [
+                    ...(data.entryPoint ? [data.entryPoint] : []),
+                    ...data.elements,
+                    ...data.modules,
+                ];
+                const sev = aggregateSeverity(allFiles);
+                const item = new ScreenItem(name, vscode.TreeItemCollapsibleState.Collapsed, 'screen', name);
+                if (sev !== 'none') {
+                    item.iconPath = SEVERITY_ICONS[sev];
+                    item.tooltip = screenTooltip(data);
+                }
+                return item;
+            });
         }
 
         // Screen level: entry point + Elements/Modules categories
@@ -178,13 +303,31 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
 
             if (data.entryPoint) {
                 const name = path.basename(data.entryPoint);
-                children.push(new ScreenItem(name, vscode.TreeItemCollapsibleState.None, 'file', element.screenName, data.entryPoint));
+                const item = new ScreenItem(name, vscode.TreeItemCollapsibleState.None, 'file', element.screenName, data.entryPoint);
+                const sev = fileSeverity(data.entryPoint);
+                if (sev !== 'none') {
+                    item.iconPath = SEVERITY_ICONS[sev];
+                    item.tooltip = fileTooltip(data.entryPoint);
+                }
+                children.push(item);
             }
             if (data.elements.length > 0) {
-                children.push(new ScreenItem('Elements', vscode.TreeItemCollapsibleState.Collapsed, 'category', element.screenName));
+                const item = new ScreenItem('Elements', vscode.TreeItemCollapsibleState.Collapsed, 'category', element.screenName);
+                const sev = aggregateSeverity(data.elements);
+                if (sev !== 'none') {
+                    item.iconPath = SEVERITY_ICONS[sev];
+                    item.tooltip = categoryTooltip(data.elements);
+                }
+                children.push(item);
             }
             if (data.modules.length > 0) {
-                children.push(new ScreenItem('Modules', vscode.TreeItemCollapsibleState.Collapsed, 'category', element.screenName));
+                const item = new ScreenItem('Modules', vscode.TreeItemCollapsibleState.Collapsed, 'category', element.screenName);
+                const sev = aggregateSeverity(data.modules);
+                if (sev !== 'none') {
+                    item.iconPath = SEVERITY_ICONS[sev];
+                    item.tooltip = categoryTooltip(data.modules);
+                }
+                children.push(item);
             }
 
             return children;
@@ -198,7 +341,13 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
             const files = element.label === 'Elements' ? data.elements : data.modules;
             return files.map(filePath => {
                 const name = path.basename(filePath);
-                return new ScreenItem(name, vscode.TreeItemCollapsibleState.None, 'file', element.screenName, filePath);
+                const item = new ScreenItem(name, vscode.TreeItemCollapsibleState.None, 'file', element.screenName, filePath);
+                const sev = fileSeverity(filePath);
+                if (sev !== 'none') {
+                    item.iconPath = SEVERITY_ICONS[sev];
+                    item.tooltip = fileTooltip(filePath);
+                }
+                return item;
             });
         }
 
@@ -408,6 +557,13 @@ export function activateScreenTreeView(context: vscode.ExtensionContext) {
     });
     treeView.title = provider.getProjectName();
     vscode.commands.executeCommand('setContext', 'viscode.hasProject', provider.hasProject());
+
+    // Refresh tree when diagnostics change
+    context.subscriptions.push(
+        vscode.languages.onDidChangeDiagnostics(() => {
+            provider.fireChange();
+        })
+    );
 
     // Watch for project.json changes
     const watcher = vscode.workspace.createFileSystemWatcher('**/.VIS/project.json');

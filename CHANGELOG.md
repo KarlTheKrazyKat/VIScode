@@ -2,6 +2,14 @@
 
 ## [Released]
 
+### 0.5.1 Screen Contract Diagnostics
+
+- **Missing function warnings** — screen entry-point scripts are checked for the five required VIStk functions (`setup`, `loop`, `configure_menu`, `on_focused`, `on_unfocused`). Missing functions show as warnings on line 1.
+- **Module-level widget errors** — widget creation (`ttk.*`, `tk.*`, `LayoutFrame`, `StringVar`, `.pack()`, `.place()`, `.grid()`, etc.) at module level is flagged as an error. All widget creation must live inside `setup()` or `build()`.
+- Diagnostics run on file open, save, and as-you-type for all Python files inside a VIStk project (detected via `.VIS/project.json`).
+- Non-screen Python files in the project still get module-level widget checks, but not the missing-function check.
+- **Tree view indicators** — screens and files in the VIS Screens tree show red error or yellow warning icons when diagnostics are present. Hover over a file to see the diagnostic details. Icons bubble up from files to category folders and screen nodes.
+
 ### 0.4.2 Housekeeping
 
 - Added MIT license
@@ -57,10 +65,6 @@
 
 ## [Unreleased]
 
-### 0.5.0 VIStk Project Settings
+### 0.6.0 VIStk Project Settings
 
-- Edit project settings, defaults, and more all in visual studio
-
-### 0.6.0 VIStk Project stuff
-
-- idk some more stuff
+- Visual editor for project settings and screen attributes
