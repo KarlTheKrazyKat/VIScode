@@ -4,7 +4,7 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -99,6 +99,15 @@
           "description": "Show information messages after snippet insertion."
         }
       }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "visScreens",
+          "name": "VIS Screens",
+          "when": "viscode.hasProject"
+        }
+      ]
     },
     "keybindings": [
       {
