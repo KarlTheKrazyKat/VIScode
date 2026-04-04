@@ -1,57 +1,55 @@
-# viscode README
+# VIS — VIStk for Visual Studio Code
 
-This is an extension to be used alongside the VIS python module available via github. Its aim is to make the creation of tkinter elements and screens even easier and faster than using the VIS module alone. Some planned features will require that the user has the VIS module installed as well and may only be available once a .VIS project has been initialized.
+VS Code extension for [VIStk](https://github.com/KarlTheKrazyKat/VIStk), the Tkinter application framework. Speeds up widget creation, adds project-aware navigation, and lets you manage screens without leaving the editor.
 
 ## Features
 
-Auto write and place tkinter elements using the VIStk f_element `.place()` pattern:
+### Widget Snippets
 
-- Label (shift+alt+L)
-- Button (shift+alt+B)
-- Entry (shift+alt+E)
-- Combobox (shift+alt+M)
-- Command Button (shift+alt+K)
+Select text and press a hotkey to generate a placed Tkinter widget:
 
-Snippet insertion messages can be disabled via `viscode.showMessages` setting (default: true)
+| Hotkey | Widget |
+|--------|--------|
+| shift+alt+L | Label |
+| shift+alt+B | Button |
+| shift+alt+E | Entry |
+| shift+alt+M | Combobox |
+| shift+alt+K | Command Button |
+
+- Auto-detects the enclosing frame (`LayoutFrame` or `ttk.Frame`) and uses it as the parent
+- Auto-positions the widget at the next available row
+- Reads `columnconfigure` / `rowconfigure` to pick the correct starting column
+- Snippet messages can be toggled via `viscode.showMessages` (default: true)
+
+### Project Navigation
+
+When a `.VIS/project.json` is present in the workspace:
+
+- **Screen Tree View** — an Explorer sidebar panel groups files by screen instead of filesystem location. Each screen shows its entry-point script, plus collapsible **Elements** and **Modules** folders.
+- **Status Bar** — shows the current VIStk screen name whenever a screen file is active.
+
+### Project Control
+
+Create, rename, and edit screens directly from the tree view — all operations delegate to VIStk CLI commands so the extension stays compatible with any VIStk version.
+
+| Action | How |
+|--------|-----|
+| **Create Screen** | `+` button in tree title bar |
+| **Rename Screen** | Right-click a screen |
+| **Edit Screen** | Right-click a screen, pick an attribute to change |
+| **Add Element** | Right-click a screen or Elements folder |
+
+### Host & Run
+
+- **Run Screen** — right-click a screen to launch it via `VIS <project> <screen>`
+- **Host Status** — the tree view shows whether the VIStk Host is currently running
+- **Stop Host** — stop button appears in the tree title bar when the Host is active
 
 ## Requirements
 
-None
-
-## Known Issues
-
-None
+- [VIStk](https://github.com/KarlTheKrazyKat/VIStk) must be installed (`pip install VIStk`) for project control and host features.
+- Widget snippets work in any Python file, no VIStk installation required.
 
 ## Release Notes
 
-### 0.1.0
-
-- All widget snippets use VIStk f_element `.place()` pattern (not `.grid()`)
-- Added `addCommandButton` (shift+alt+K) — generates `tk.Button` with no preset styling
-- Snippet messages gated on `viscode.showMessages` config (default: true)
-
-### 0.0.3
-
-- Added keyboard shortcuts all under shift+alt
-- Auto label (shift+alt+L)
-- Auto button (shift+alt+B)
-- Auto entry (shift+alt+E)
-- Auto combobox (shift+alt+M)
-
-### 0.0.2
-
-- Auto write and grid tkinter button
-- Auto write and grid tkinter entry
-- Auto write and grid tkinter combobox
-
-### 0.0.1
-
-- Auto write and grid tkinter label from selection menu
-
-## Upcoming
-
-- More elements creatable through VIS submenu
-- VIS module functionality via VIS submenu
-- VIS project awareness (show current screen)
-- VIS project navigation (alternate file tree by screen)
-- VIS project control (create, rename, edit screens)
+See [CHANGELOG.md](CHANGELOG.md) for the full history.

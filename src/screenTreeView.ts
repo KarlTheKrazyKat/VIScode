@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as net from 'net';
+import * as os from 'os';
 import { exec } from 'child_process';
 
 interface ScreenEntry {
@@ -62,6 +64,7 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
     private projectRoot: string | null = null;
     private screens: Record<string, ScreenData> = {};
     private projectName = 'VIS';
+    private projectTitle = '';
 
     refresh() {
         this.loadProject();
@@ -70,6 +73,10 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
 
     getProjectName(): string {
         return this.projectName;
+    }
+
+    getProjectTitle(): string {
+        return this.projectTitle;
     }
 
     getProjectRoot(): string | null {
@@ -84,6 +91,7 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
         this.screens = {};
         this.projectRoot = null;
         this.projectName = 'VIS';
+        this.projectTitle = '';
 
         const folders = vscode.workspace.workspaceFolders;
         if (!folders) { return; }
@@ -101,6 +109,7 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
             const projectKey = Object.keys(raw)[0];
             if (!projectKey) { return; }
             const project = raw[projectKey] as Record<string, unknown>;
+            this.projectTitle = projectKey;
             this.projectName = `VIS: ${projectKey}`;
 
             const screensObj = project.Screens as Record<string, ScreenEntry> | undefined;
@@ -338,6 +347,56 @@ async function addElement(provider: ScreenTreeProvider, item: ScreenItem) {
     }
 }
 
+// ── Host status ──────────────────────────────────────────────────────
+
+function getPortFilePath(projectTitle: string): string {
+    const safe = projectTitle.replace(/ /g, '_');
+    return path.join(os.tmpdir(), `${safe}_vis_host.port`);
+}
+
+function checkPort(port: number, timeout = 1000): Promise<boolean> {
+    return new Promise(resolve => {
+        const socket = new net.Socket();
+        socket.setTimeout(timeout);
+        socket.on('connect', () => { socket.destroy(); resolve(true); });
+        socket.on('timeout', () => { socket.destroy(); resolve(false); });
+        socket.on('error', () => { resolve(false); });
+        socket.connect(port, '127.0.0.1');
+    });
+}
+
+async function isHostRunning(projectTitle: string): Promise<boolean> {
+    if (!projectTitle) { return false; }
+    const portFile = getPortFilePath(projectTitle);
+    if (!fs.existsSync(portFile)) { return false; }
+
+    try {
+        const port = parseInt(fs.readFileSync(portFile, 'utf-8').trim(), 10);
+        if (isNaN(port)) { return false; }
+        return await checkPort(port);
+    } catch {
+        return false;
+    }
+}
+
+// ── Run / Stop ───────────────────────────────────────────────────────
+
+function runScreen(provider: ScreenTreeProvider, item: ScreenItem) {
+    const root = provider.getProjectRoot();
+    const title = provider.getProjectTitle();
+    const screenName = item.screenName;
+    if (!root || !title || !screenName) { return; }
+
+    sendToTerminal(root, `VIS ${title} ${screenName}`);
+}
+
+function stopHost(provider: ScreenTreeProvider) {
+    const root = provider.getProjectRoot();
+    if (!root) { return; }
+
+    sendToTerminal(root, `VIS stop`);
+}
+
 // ── Activation ───────────────────────────────────────────────────────
 
 export function activateScreenTreeView(context: vscode.ExtensionContext) {
@@ -361,13 +420,30 @@ export function activateScreenTreeView(context: vscode.ExtensionContext) {
     watcher.onDidCreate(onProjectChange);
     watcher.onDidDelete(onProjectChange);
 
+    // Poll host status every 3 seconds
+    let lastHostState: boolean | null = null;
+    const pollHost = async () => {
+        const title = provider.getProjectTitle();
+        const running = await isHostRunning(title);
+        if (running !== lastHostState) {
+            lastHostState = running;
+            vscode.commands.executeCommand('setContext', 'viscode.hostRunning', running);
+            treeView.description = running ? '$(circle-filled) Host running' : '';
+        }
+    };
+    const pollInterval = setInterval(pollHost, 3000);
+    pollHost();
+
     // Register commands
     context.subscriptions.push(
         treeView,
         watcher,
+        { dispose: () => clearInterval(pollInterval) },
         vscode.commands.registerCommand('viscode.createScreen', () => createScreen(provider)),
         vscode.commands.registerCommand('viscode.renameScreen', (item: ScreenItem) => renameScreen(provider, item)),
         vscode.commands.registerCommand('viscode.editScreen', (item: ScreenItem) => editScreen(provider, item)),
         vscode.commands.registerCommand('viscode.addElement', (item: ScreenItem) => addElement(provider, item)),
+        vscode.commands.registerCommand('viscode.runScreen', (item: ScreenItem) => runScreen(provider, item)),
+        vscode.commands.registerCommand('viscode.stopHost', () => stopHost(provider)),
     );
 }

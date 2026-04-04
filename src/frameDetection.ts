@@ -59,12 +59,17 @@ export function detectNextPosition(
 ): { row: number; col: number } {
     if (frame.type === 'grid') {
         const rowRe = /\.grid\([^)]*\brow\s*=\s*(\d+)/;
+        const colConfigRe = new RegExp(frame.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\.columnconfigure\\(\\s*(\\d+)');
         let maxRow = -1;
+        let startCol = 0;
         for (let i = frame.definedAtLine + 1; i < cursorLine; i++) {
-            const m = rowRe.exec(document.lineAt(i).text);
+            const line = document.lineAt(i).text;
+            const m = rowRe.exec(line);
             if (m) { maxRow = Math.max(maxRow, parseInt(m[1], 10)); }
+            const cc = colConfigRe.exec(line);
+            if (cc && startCol === 0) { startCol = parseInt(cc[1], 10); }
         }
-        return { row: maxRow + 1, col: 0 };
+        return { row: maxRow + 1, col: startCol };
     } else {
         const escaped = frame.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const cellRe  = new RegExp(escaped + '\\.Layout\\.cell\\((\\d+),\\s*(\\d+)\\)');

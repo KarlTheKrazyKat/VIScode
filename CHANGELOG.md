@@ -2,6 +2,19 @@
 
 ## [Released]
 
+### 0.4.2 Housekeeping
+
+- Added MIT license
+- Added marketplace icon (VIS.png)
+- Updated README with full feature overview for the marketplace listing
+- Fixed grid snippet placement using wrong starting column — now reads `columnconfigure` from the frame
+
+### 0.4.1 Host & Run
+
+- **Run Screen** — right-click a screen in the tree to launch it via `VIS <project> <screen>`
+- **Host status indicator** — tree view description shows whether the Host is currently running (polled every 3s via port file + TCP check)
+- **Stop Host** — stop button appears in tree title bar when Host is running, sends `VIS stop`
+
 ### 0.4.0 VIStk Project Control
 
 - All screen operations delegate to VIStk CLI / Python API — the extension stays in sync with VIStk regardless of internal changes
@@ -43,12 +56,6 @@
 - Detected frame name used as widget parent (falls back to `f_elem` when no frame found)
 
 ## [Unreleased]
-
-### 0.4.1 Host & Run
-
-- **Run Screen** — right-click a screen in the tree to launch it via `VIS <project> <screen>`
-- **Host status indicator** — tree view shows whether the Host is currently running
-- **Stop Host** — action to stop the running Host via `VIS stop`
 
 ### 0.5.0 VIStk Project Settings
 

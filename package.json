@@ -5,7 +5,8 @@
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
   "license": "MIT",
-  "version": "0.4.0",
+  "icon": "images/VIS.png",
+  "version": "0.4.2",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -59,6 +60,16 @@
       {
         "command": "viscode.addElement",
         "title": "Add Element"
+      },
+      {
+        "command": "viscode.runScreen",
+        "title": "Run Screen",
+        "icon": "$(play)"
+      },
+      {
+        "command": "viscode.stopHost",
+        "title": "Stop Host",
+        "icon": "$(debug-stop)"
       }
     ],
     "submenus": [
@@ -82,9 +93,14 @@
       ],
       "view/title": [
         {
+          "command": "viscode.stopHost",
+          "when": "view == visScreens && viscode.hostRunning",
+          "group": "navigation@1"
+        },
+        {
           "command": "viscode.createScreen",
           "when": "view == visScreens",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -107,6 +123,11 @@
           "command": "viscode.addElement",
           "when": "view == visScreens && viewItem == elements",
           "group": "1_add@1"
+        },
+        {
+          "command": "viscode.runScreen",
+          "when": "view == visScreens && viewItem == screen",
+          "group": "0_run@1"
         }
       ],
       "vis.code": [

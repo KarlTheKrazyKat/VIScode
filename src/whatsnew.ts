@@ -7,6 +7,27 @@ interface ChangeEntry {
 
 /** Add an entry here for every released version. */
 const changelog: Record<string, ChangeEntry[]> = {
+    '0.4.2': [
+        {
+            section: 'Housekeeping',
+            items: [
+                'Added MIT license.',
+                'Added marketplace icon.',
+                'Updated README with full feature overview.',
+                'Fixed grid snippet placement using wrong starting column — now reads <code>columnconfigure</code> from the frame.',
+            ],
+        },
+    ],
+    '0.4.1': [
+        {
+            section: 'Host & Run',
+            items: [
+                '<strong>Run Screen</strong> — right-click a screen in the tree to launch it via <code>VIS &lt;project&gt; &lt;screen&gt;</code>.',
+                '<strong>Host status indicator</strong> — the tree view description shows whether the Host is running (polled every 3 seconds).',
+                '<strong>Stop Host</strong> — stop button appears in the tree title bar when Host is running, sends <code>VIS stop</code>.',
+            ],
+        },
+    ],
     '0.4.0': [
         {
             section: 'VIStk Project Control',
