@@ -4,6 +4,7 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
+  "license": "MIT",
   "version": "0.4.0",
   "engines": {
     "vscode": "^1.97.0"
