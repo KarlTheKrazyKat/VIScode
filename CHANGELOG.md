@@ -2,6 +2,15 @@
 
 ## [Released]
 
+### 0.4.0 VIStk Project Control
+
+- All screen operations delegate to VIStk CLI / Python API — the extension stays in sync with VIStk regardless of internal changes
+- **Create Screen** — `+` button in tree title bar runs `VIS add screen <name>`
+- **Rename Screen** — right-click a screen, runs `VIS rename <old> <new>`
+- **Edit Screen** — right-click a screen to modify attributes (tabbed, release, icon, desc, version, etc.) via `VIS edit`
+- **Add Element** — right-click a screen or Elements folder to add `f_<name>.py` + `m_<name>.py` via `Screen.addElement()`
+- Right-click context menus on screens and category nodes in the VIS Screens tree
+
 ### 0.3.0 VIStk Project Navigation
 
 - Screen tree view in the Explorer sidebar — files grouped by screen instead of filesystem location
@@ -34,10 +43,6 @@
 - Detected frame name used as widget parent (falls back to `f_elem` when no frame found)
 
 ## [Unreleased]
-
-### 0.4.0 VIStk Project Control
-
-- create, rename, edit screens through the alternate file tree
 
 ### 0.5.0 VIStk Project Settings
 

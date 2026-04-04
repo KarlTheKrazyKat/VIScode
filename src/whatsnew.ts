@@ -7,6 +7,19 @@ interface ChangeEntry {
 
 /** Add an entry here for every released version. */
 const changelog: Record<string, ChangeEntry[]> = {
+    '0.4.0': [
+        {
+            section: 'VIStk Project Control',
+            items: [
+                'All screen operations delegate to VIStk CLI / Python API — the extension stays in sync with VIStk regardless of internal changes.',
+                '<strong>Create Screen</strong> — <strong>+</strong> button in tree title bar runs <code>VIS add screen</code>.',
+                '<strong>Rename Screen</strong> — right-click a screen, runs <code>VIS rename</code>.',
+                '<strong>Edit Screen</strong> — right-click a screen to modify attributes (tabbed, release, icon, desc, version, etc.) via <code>VIS edit</code>.',
+                '<strong>Add Element</strong> — right-click a screen or Elements folder to add <code>f_*.py</code> + <code>m_*.py</code> via <code>Screen.addElement()</code>.',
+                'Right-click context menus on screens and category nodes in the VIS Screens tree.',
+            ],
+        },
+    ],
     '0.3.0': [
         {
             section: 'VIStk Project Navigation',

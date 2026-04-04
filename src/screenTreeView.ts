@@ -1,9 +1,17 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { exec } from 'child_process';
 
 interface ScreenEntry {
     script?: string;
+    tabbed?: boolean;
+    release?: boolean;
+    icon?: string | null;
+    desc?: string;
+    single_instance?: boolean;
+    version?: string;
+    current?: string | null;
     [key: string]: unknown;
 }
 
@@ -27,9 +35,11 @@ class ScreenItem extends vscode.TreeItem {
         switch (kind) {
             case 'screen':
                 this.iconPath = new vscode.ThemeIcon('browser');
+                this.contextValue = 'screen';
                 break;
             case 'category':
                 this.iconPath = new vscode.ThemeIcon('folder');
+                this.contextValue = label === 'Elements' ? 'elements' : 'modules';
                 break;
             case 'file':
                 if (filePath) {
@@ -60,6 +70,10 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
 
     getProjectName(): string {
         return this.projectName;
+    }
+
+    getProjectRoot(): string | null {
+        return this.projectRoot;
     }
 
     hasProject(): boolean {
@@ -183,6 +197,149 @@ class ScreenTreeProvider implements vscode.TreeDataProvider<ScreenItem> {
     }
 }
 
+// ── Shell helpers ────────────────────────────────────────────────────
+
+let visTerminal: vscode.Terminal | undefined;
+
+function getVISTerminal(cwd: string): vscode.Terminal {
+    if (visTerminal && !visTerminal.exitStatus) {
+        return visTerminal;
+    }
+    visTerminal = vscode.window.createTerminal({ name: 'VIS', cwd });
+    return visTerminal;
+}
+
+function sendToTerminal(cwd: string, command: string) {
+    const term = getVISTerminal(cwd);
+    term.show();
+    term.sendText(command);
+}
+
+function runPython(cwd: string, code: string): Promise<string> {
+    const escaped = code.replace(/"/g, '\\"');
+    return new Promise((resolve, reject) => {
+        exec(`python -c "${escaped}"`, { cwd }, (err, stdout, stderr) => {
+            if (err) {
+                reject(new Error(stderr.trim() || err.message));
+            } else {
+                resolve(stdout.trim());
+            }
+        });
+    });
+}
+
+const NAME_PATTERN = /^[A-Za-z_]\w*$/;
+
+function validateScreenName(v: string): string | undefined {
+    if (!v || !v.trim()) { return 'Name cannot be empty'; }
+    if (!NAME_PATTERN.test(v.trim())) { return 'Must be a valid Python identifier'; }
+    return undefined;
+}
+
+// ── Commands ─────────────────────────────────────────────────────────
+
+async function createScreen(provider: ScreenTreeProvider) {
+    const root = provider.getProjectRoot();
+    if (!root) {
+        vscode.window.showWarningMessage('No VIStk project found in the workspace.');
+        return;
+    }
+
+    const name = await vscode.window.showInputBox({
+        prompt: 'Screen name',
+        placeHolder: 'MyScreen',
+        validateInput: validateScreenName
+    });
+    if (!name) { return; }
+
+    sendToTerminal(root, `VIS add screen ${name.trim()}`);
+}
+
+async function renameScreen(provider: ScreenTreeProvider, item: ScreenItem) {
+    const root = provider.getProjectRoot();
+    const oldName = item.screenName;
+    if (!root || !oldName) { return; }
+
+    const newName = await vscode.window.showInputBox({
+        prompt: `Rename "${oldName}" to`,
+        value: oldName,
+        validateInput: v => {
+            const base = validateScreenName(v);
+            if (base) { return base; }
+            if (v.trim() === oldName) { return 'Name is the same'; }
+            return undefined;
+        }
+    });
+    if (!newName) { return; }
+
+    sendToTerminal(root, `VIS rename ${oldName} ${newName.trim()}`);
+}
+
+const EDITABLE_ATTRS: { label: string; attr: string; description: string }[] = [
+    { label: 'tabbed',          attr: 'tabbed',          description: 'Open as Host tab (true/false)' },
+    { label: 'release',         attr: 'release',         description: 'Include in release builds (true/false)' },
+    { label: 'icon',            attr: 'icon',            description: 'Icon name (or None)' },
+    { label: 'desc',            attr: 'desc',            description: 'Screen description' },
+    { label: 'single_instance', attr: 'single_instance', description: 'Only one instance allowed (true/false)' },
+    { label: 'version',         attr: 'version',         description: 'Version string (major.minor.patch)' },
+    { label: 'script',          attr: 'script',          description: 'Entry-point script filename' },
+];
+
+async function editScreen(provider: ScreenTreeProvider, item: ScreenItem) {
+    const root = provider.getProjectRoot();
+    const screenName = item.screenName;
+    if (!root || !screenName) { return; }
+
+    const picked = await vscode.window.showQuickPick(EDITABLE_ATTRS, {
+        placeHolder: `Edit attribute of "${screenName}"`,
+    });
+    if (!picked) { return; }
+
+    const value = await vscode.window.showInputBox({
+        prompt: `${screenName} → ${picked.attr}`,
+        placeHolder: picked.description,
+    });
+    if (value === undefined) { return; }
+
+    sendToTerminal(root, `VIS edit ${screenName} ${picked.attr} ${value}`);
+}
+
+async function addElement(provider: ScreenTreeProvider, item: ScreenItem) {
+    const root = provider.getProjectRoot();
+    const screenName = item.screenName;
+    if (!root || !screenName) { return; }
+
+    const input = await vscode.window.showInputBox({
+        prompt: `Element name (creates f_<name>.py + m_<name>.py for "${screenName}")`,
+        placeHolder: 'header',
+        validateInput: validateScreenName
+    });
+    if (!input) { return; }
+
+    const name = input.trim();
+
+    try {
+        await runPython(root,
+            `from VIStk.Structures._Project import Project; ` +
+            `Project().getScreen('${screenName}').addElement('${name}')`
+        );
+        provider.refresh();
+        vscode.window.showInformationMessage(`Element "${name}" added to "${screenName}".`);
+
+        // Open the element file if it was created
+        const elemPath = path.join(root, 'Screens', screenName, `f_${name}.py`);
+        if (fs.existsSync(elemPath)) {
+            const doc = await vscode.workspace.openTextDocument(elemPath);
+            await vscode.window.showTextDocument(doc);
+        }
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        vscode.window.showErrorMessage(`Failed to add element: ${msg}`);
+    }
+}
+
+// ── Activation ───────────────────────────────────────────────────────
+
 export function activateScreenTreeView(context: vscode.ExtensionContext) {
     const provider = new ScreenTreeProvider();
     provider.refresh();
@@ -204,5 +361,13 @@ export function activateScreenTreeView(context: vscode.ExtensionContext) {
     watcher.onDidCreate(onProjectChange);
     watcher.onDidDelete(onProjectChange);
 
-    context.subscriptions.push(treeView, watcher);
+    // Register commands
+    context.subscriptions.push(
+        treeView,
+        watcher,
+        vscode.commands.registerCommand('viscode.createScreen', () => createScreen(provider)),
+        vscode.commands.registerCommand('viscode.renameScreen', (item: ScreenItem) => renameScreen(provider, item)),
+        vscode.commands.registerCommand('viscode.editScreen', (item: ScreenItem) => editScreen(provider, item)),
+        vscode.commands.registerCommand('viscode.addElement', (item: ScreenItem) => addElement(provider, item)),
+    );
 }

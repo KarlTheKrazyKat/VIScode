@@ -4,7 +4,7 @@
   "repository": "https://github.com/KarlTheKrazyKat/VIScode",
   "publisher": "KarlTheKrazyKat",
   "description": "VScode extension for VIS",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -41,6 +41,23 @@
       {
         "command": "viscode.showWelcome",
         "title": "VIS: Show Welcome Page"
+      },
+      {
+        "command": "viscode.createScreen",
+        "title": "Create Screen",
+        "icon": "$(add)"
+      },
+      {
+        "command": "viscode.renameScreen",
+        "title": "Rename Screen"
+      },
+      {
+        "command": "viscode.editScreen",
+        "title": "Edit Screen"
+      },
+      {
+        "command": "viscode.addElement",
+        "title": "Add Element"
       }
     ],
     "submenus": [
@@ -60,6 +77,35 @@
         {
           "submenu": "vis.code",
           "group": "visexpl"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "viscode.createScreen",
+          "when": "view == visScreens",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "viscode.renameScreen",
+          "when": "view == visScreens && viewItem == screen",
+          "group": "1_manage@1"
+        },
+        {
+          "command": "viscode.editScreen",
+          "when": "view == visScreens && viewItem == screen",
+          "group": "1_manage@2"
+        },
+        {
+          "command": "viscode.addElement",
+          "when": "view == visScreens && viewItem == screen",
+          "group": "2_add@1"
+        },
+        {
+          "command": "viscode.addElement",
+          "when": "view == visScreens && viewItem == elements",
+          "group": "1_add@1"
         }
       ],
       "vis.code": [
