@@ -44,6 +44,12 @@
 
 ## [Unreleased]
 
+### 0.4.1 Host & Run
+
+- **Run Screen** — right-click a screen in the tree to launch it via `VIS <project> <screen>`
+- **Host status indicator** — tree view shows whether the Host is currently running
+- **Stop Host** — action to stop the running Host via `VIS stop`
+
 ### 0.5.0 VIStk Project Settings
 
 - Edit project settings, defaults, and more all in visual studio
